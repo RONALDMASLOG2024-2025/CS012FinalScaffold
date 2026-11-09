@@ -1,2 +1,16 @@
+[project]
+name = "wicare-ward-gateway"
+version = "1.0.0"
+requires-python = ">=3.10"
+dependencies = [
+	"fastapi>=0.115.6,<0.116.0",
+	"starlette>=0.40.0,<0.42.0",
+	"uvicorn>=0.22.0",
+	"httpx>=0.24.0",
+	"pydantic>=2.0.0",
+	"qrcode>=7.0",
+	"pillow>=9.0.0",
+]
+
 [tool.vercel]
 entrypoint = "coordinator.main:app"
