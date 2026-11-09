@@ -539,14 +539,7 @@ def _route_storage(key: str, is_sensitive: bool) -> tuple[str, str]:
 
 @app.get("/")
 async def root():
-    return {
-        "service": "WiCare Ward Gateway",
-        "demo": "/demo",
-        "docs": "/docs",
-        "topology": "/cluster/topology",
-        "health": "/cluster/health",
-        "sense": "/api/v1/sense",
-    }
+    return FileResponse(WEB_DIR / "index.html")
 
 
 @app.get("/demo", response_class=FileResponse)
