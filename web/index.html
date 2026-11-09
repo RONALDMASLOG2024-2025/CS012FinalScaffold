@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WiCare Distributed Simulation</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">W</div>
+      <div>
+        <div class="brand-title">WiCare</div>
+        <div class="brand-subtitle">DISTRIBUTED SYSTEMS SIMULATOR</div>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <span id="clusterStatus" class="status-pill status-connecting">CONNECTING</span>
+      <a class="quiet-link" href="/docs" target="_blank" rel="noreferrer">API docs</a>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="intro">
+      <div>
+        <p class="eyebrow">LOCAL HYBRID-CLOUD MODEL</p>
+        <h1>Wi-Fi CSI care monitoring</h1>
+        <p class="intro-copy">
+          Follow real requests through a private transmitter, two edge receivers,
+          and the ward gateway. Faults and latency are simulated; the services and
+          CSI processing run locally.
+        </p>
+      </div>
+      <div class="deployment-badge">
+        <span class="badge-dot"></span>
+        <span>Private facility + edge compute</span>
+      </div>
+    </section>
+
+    <section class="panel controls-panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">CONTROL PLANE</p>
+          <h2>Simulation controls</h2>
+        </div>
+        <p id="simulationTime" class="simulation-time">SIM 0.000 s</p>
+      </div>
+      <div class="control-row">
+        <button id="startButton" class="button button-primary">Start normal run</button>
+        <button id="pauseButton" class="button button-secondary">Pause</button>
+        <button id="resetButton" class="button button-quiet">Reset</button>
+        <span class="control-divider"></span>
+        <label class="control-field">
+          <span>Speed</span>
+          <select id="speedSelect">
+            <option value="0.5">0.5x</option>
+            <option value="1" selected>1x</option>
+            <option value="2">2x</option>
+            <option value="4">4x</option>
+          </select>
+        </label>
+        <label class="control-field">
+          <span>Network ms</span>
+          <input id="networkLatency" type="number" min="0" max="2000" step="10" value="20">
+        </label>
+        <label class="control-field">
+          <span>Processing ms</span>
+          <input id="processingLatency" type="number" min="0" max="2000" step="10" value="250">
+        </label>
+        <button id="applyControlButton" class="button button-secondary">Apply</button>
+      </div>
+      <p id="scenarioStatus" class="scenario-status" role="status" aria-live="polite">
+        Ready. Select a repeatable scenario or start a normal sensing request.
+      </p>
+    </section>
+
+    <section class="scenario-section">
+      <div class="section-heading compact-heading">
+        <div>
+          <p class="eyebrow">DEMONSTRATION PRESETS</p>
+          <h2>Run a scenario</h2>
+        </div>
+      </div>
+      <div class="scenario-grid">
+        <button class="scenario-card" data-scenario="normal">
+          <span class="scenario-number">01</span>
+          <span class="scenario-title">Normal operation</span>
+          <span class="scenario-description">Generate, process, fuse, and trace one resting window.</span>
+        </button>
+        <button class="scenario-card" data-scenario="concurrent">
+          <span class="scenario-number">02</span>
+          <span class="scenario-title">Concurrent workload</span>
+          <span class="scenario-description">Run four distinct requests in parallel with separate traces.</span>
+        </button>
+        <button class="scenario-card" data-scenario="failure">
+          <span class="scenario-number">03</span>
+          <span class="scenario-title">Receiver failure</span>
+          <span class="scenario-description">Fail RX-A and observe bounded retry plus degraded sensing.</span>
+        </button>
+        <button class="scenario-card" data-scenario="partition">
+          <span class="scenario-number">04</span>
+          <span class="scenario-title">CAP partition</span>
+          <span class="scenario-description">Split telemetry replicas and compare their versions.</span>
+        </button>
+        <button class="scenario-card" data-scenario="recovery">
+          <span class="scenario-number">05</span>
+          <span class="scenario-title">Recovery</span>
+          <span class="scenario-description">Heal the link and reconcile the latest telemetry version.</span>
+        </button>
+        <button class="scenario-card" data-scenario="replication">
+          <span class="scenario-number">06</span>
+          <span class="scenario-title">Replication and shards</span>
+          <span class="scenario-description">Inspect replicated telemetry beside zone-routed storage.</span>
+        </button>
+      </div>
+    </section>
+
+    <div class="main-grid">
+      <section class="panel topology-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">LIVE DATA PLANE</p>
+            <h2>Network topology</h2>
+          </div>
+          <span id="topologyState" class="subtle-label">Waiting for cluster</span>
+        </div>
+        <div class="topology-wrap">
+          <svg id="topology" class="topology" viewBox="0 0 1000 455" role="img" aria-label="WiCare gateway, private transmitter, and two edge receivers">
+            <defs>
+              <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                <path d="M0,0 L8,4 L0,8 z" class="arrow-head"></path>
+              </marker>
+            </defs>
+            <text x="500" y="18" text-anchor="middle" class="zone-label">LOGICAL CLOUD GATEWAY</text>
+            <text x="500" y="164" text-anchor="middle" class="zone-label">PRIVATE FACILITY</text>
+            <text x="500" y="286" text-anchor="middle" class="zone-label">WARD EDGE COMPUTE</text>
+
+            <path id="edge-coordinator-tx" class="topology-edge" marker-end="url(#arrow)" d="M500 115 L500 176"></path>
+            <path id="edge-coordinator-rxa" class="topology-edge" marker-end="url(#arrow)" d="M415 96 C320 138 250 228 198 317"></path>
+            <path id="edge-coordinator-rxb" class="topology-edge" marker-end="url(#arrow)" d="M585 96 C680 138 750 228 802 317"></path>
+            <path id="edge-rxa-rxb" class="topology-edge topology-edge-replica" marker-end="url(#arrow)" d="M295 358 C405 327 595 327 705 358"></path>
+
+            <text x="290" y="206" class="edge-label">CSI link processing</text>
+            <text x="710" y="206" class="edge-label">CSI link processing</text>
+            <text x="500" y="339" text-anchor="middle" class="edge-label">telemetry replication only</text>
+
+            <g id="node-Coordinator" class="topology-node healthy" data-node="Coordinator">
+              <rect x="390" y="42" width="220" height="74" rx="14"></rect>
+              <circle class="node-indicator" cx="415" cy="79" r="7"></circle>
+              <text class="node-name" x="434" y="73">Ward Gateway</text>
+              <text class="node-role" x="434" y="94">ROUTER / FUSION</text>
+            </g>
+            <g id="node-Worker-TX" class="topology-node healthy" data-node="Worker-TX">
+              <rect x="390" y="176" width="220" height="74" rx="14"></rect>
+              <circle class="node-indicator" cx="415" cy="213" r="7"></circle>
+              <text class="node-name" x="434" y="207">Worker-TX</text>
+              <text class="node-role" x="434" y="228">PRIVATE / CSI SOURCE</text>
+            </g>
+            <g id="node-Worker-RX-A" class="topology-node healthy" data-node="Worker-RX-A">
+              <rect x="75" y="317" width="220" height="74" rx="14"></rect>
+              <circle class="node-indicator" cx="100" cy="354" r="7"></circle>
+              <text class="node-name" x="119" y="348">Worker-RX-A</text>
+              <text class="node-role" x="119" y="369">EDGE / ZONE-A</text>
+            </g>
+            <g id="node-Worker-RX-B" class="topology-node healthy" data-node="Worker-RX-B">
+              <rect x="705" y="317" width="220" height="74" rx="14"></rect>
+              <circle class="node-indicator" cx="730" cy="354" r="7"></circle>
+              <text class="node-name" x="749" y="348">Worker-RX-B</text>
+              <text class="node-role" x="749" y="369">EDGE / ZONE-B</text>
+            </g>
+            <g id="particles"></g>
+          </svg>
+        </div>
+        <div class="legend">
+          <span><i class="legend-dot healthy-dot"></i>Healthy</span>
+          <span><i class="legend-dot busy-dot"></i>Busy</span>
+          <span><i class="legend-dot failed-dot"></i>Failed</span>
+          <span><i class="legend-dot isolated-dot"></i>Partitioned</span>
+          <span><i class="legend-particle"></i>In-flight message</span>
+          <span><i class="legend-line"></i>Replica link</span>
+        </div>
+      </section>
+
+      <section class="panel metrics-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">EVENT-DERIVED</p>
+            <h2>Live metrics</h2>
+          </div>
+          <span class="live-indicator"><i></i>LIVE</span>
+        </div>
+        <div class="metrics-grid">
+          <article class="metric-card">
+            <span class="metric-label">Completed</span>
+            <strong id="metricCompleted">0</strong>
+            <span class="metric-note">requests</span>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Failed</span>
+            <strong id="metricFailed">0</strong>
+            <span class="metric-note">requests</span>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Avg latency</span>
+            <strong id="metricLatency">0<span>ms</span></strong>
+            <span class="metric-note">end-to-end</span>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Queue depth</span>
+            <strong id="metricQueue">0</strong>
+            <span class="metric-note">replica repairs</span>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Retries</span>
+            <strong id="metricRetries">0</strong>
+            <span class="metric-note">bounded attempts</span>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">In flight</span>
+            <strong id="metricInFlight">0</strong>
+            <span class="metric-note">active requests</span>
+          </article>
+        </div>
+        <div class="architecture-note">
+          <h3>Consistency note</h3>
+          <p>
+            Non-sensitive telemetry is AP-style during the modeled RX partition:
+            local writes remain available and replicas may diverge. Healing applies
+            the highest logical version. Private resident records and raw CSI are
+            single-copy data, not a CAP replication demo.
+          </p>
+        </div>
+        <div class="latest-request">
+          <div class="latest-heading">
+            <h3>Latest result</h3>
+            <span id="latestStatus" class="result-badge">NO REQUEST</span>
+          </div>
+          <p id="latestSummary">Run a sensing scenario to inspect a request.</p>
+          <button id="inspectLatestButton" class="text-button" disabled>Open its trace</button>
+        </div>
+      </section>
+    </div>
+
+    <div class="detail-grid">
+      <section class="panel event-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">STRUCTURED EVENT STREAM</p>
+            <h2>Live event log</h2>
+          </div>
+          <a class="button button-quiet button-small" href="/api/v1/events/export">Export JSONL</a>
+        </div>
+        <div class="filter-row">
+          <label for="traceFilter">Filter by trace ID</label>
+          <input id="traceFilter" type="text" placeholder="Paste a trace ID">
+          <button id="filterTraceButton" class="button button-secondary button-small">Filter</button>
+          <button id="clearFilterButton" class="button button-quiet button-small">Clear</button>
+        </div>
+        <ol id="eventList" class="event-list" aria-live="polite"></ol>
+      </section>
+
+      <section class="panel trace-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">DISTRIBUTED TRACE</p>
+            <h2>Request inspector</h2>
+          </div>
+        </div>
+        <label class="trace-select-label" for="traceSelect">Recent request traces</label>
+        <select id="traceSelect">
+          <option value="">Select a trace</option>
+        </select>
+        <div id="traceSummary" class="trace-summary">Select a trace or click an event row.</div>
+        <ol id="traceEvents" class="trace-events"></ol>
+      </section>
+    </div>
+
+    <footer class="footer">
+      <span>Local simulation only. CSI values are synthetic and are not medical measurements.</span>
+      <span id="generationLabel">Generation 0</span>
+    </footer>
+  </main>
+  <script src="/assets/app.js" defer></script>
+</body>
+</html>

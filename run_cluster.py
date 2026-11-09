@@ -54,6 +54,8 @@ def main():
             "role": "receiver",
             "zone": "zone-a",
             "is_private": "false",
+            "replica_id": "Worker-RX-B",
+            "replica_url": "http://127.0.0.1:8003",
         },
         {
             "id": "Worker-RX-B",
@@ -61,6 +63,8 @@ def main():
             "role": "receiver",
             "zone": "zone-b",
             "is_private": "false",
+            "replica_id": "Worker-RX-A",
+            "replica_url": "http://127.0.0.1:8002",
         },
     ]
 
@@ -71,6 +75,7 @@ def main():
             "--host", "127.0.0.1",
             "--port", worker["port"],
             "--log-level", "info",
+            "--no-access-log",
         ]
         env = {
             "NODE_ID": worker["id"],
@@ -78,6 +83,9 @@ def main():
             "ROLE": worker["role"],
             "ZONE": worker["zone"],
             "IS_PRIVATE": worker["is_private"],
+            "REPLICA_ID": worker.get("replica_id", ""),
+            "REPLICA_URL": worker.get("replica_url", ""),
+            "EVENT_SINK_URL": "http://127.0.0.1:8000/api/v1/events/ingest",
         }
         process = subprocess.Popen(cmd, cwd=ROOT, env={**os.environ, **env})
         processes.append(process)
@@ -88,6 +96,7 @@ def main():
         "--host", "127.0.0.1",
         "--port", "8000",
         "--log-level", "info",
+        "--no-access-log",
     ]
     coord_env = {
         "TX_URL": "http://127.0.0.1:8001",
@@ -104,6 +113,7 @@ def main():
         print("[Cluster Manager] Nodes did not all report healthy yet. Check the logs above.")
 
     print("Ward gateway:        http://localhost:8000")
+    print("Animated dashboard:  http://localhost:8000/demo")
     print("Interactive API docs: http://localhost:8000/docs")
     print("Try a window:         python demo_wicare.py")
     print("Press Ctrl+C to stop all cluster processes.\n")

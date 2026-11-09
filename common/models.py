@@ -135,3 +135,43 @@ class AlertRecord(BaseModel):
     fall_detected: bool
     trace_id: str
     created_at: str
+
+
+class ReplicaUpdate(BaseModel):
+    key: str = Field(pattern=r"^telemetry:[A-Za-z0-9:_-]{1,120}$")
+    value: Any
+    version: int = Field(ge=1)
+    writer_id: str = Field(pattern=r"^Worker-RX-[AB]$")
+
+
+class SimulationControl(BaseModel):
+    paused: Optional[bool] = None
+    speed: Optional[float] = Field(default=None, ge=0.25, le=4.0)
+    network_latency_ms: Optional[int] = Field(default=None, ge=0, le=2000)
+    processing_latency_ms: Optional[int] = Field(default=None, ge=0, le=2000)
+    partitions: Optional[list[tuple[str, str]]] = None
+    generation: Optional[int] = Field(default=None, ge=0)
+
+
+class SimulationFaults(BaseModel):
+    failed_nodes: list[str] = Field(default_factory=list)
+    partitions: list[tuple[str, str]] = Field(default_factory=list)
+
+
+class SimulationEvent(BaseModel):
+    event_id: str
+    event_type: str
+    timestamp: str
+    trace_id: str
+    request_id: str
+    span_id: Optional[str] = None
+    parent_span_id: Optional[str] = None
+    source: Optional[str] = None
+    destination: Optional[str] = None
+    service: str
+    node: str
+    operation: str
+    status: str
+    message: str
+    generation: int = 0
+    attributes: dict[str, Any] = Field(default_factory=dict)
